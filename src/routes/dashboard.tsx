@@ -3,10 +3,12 @@ import { useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { AppShell } from "@/components/AppShell";
+import { LogSpendDialog } from "@/components/LogSpendDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { gbp } from "@/lib/format";
-import { Wallet, TrendingDown, PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { gbp } from "@/lib/format";
+import { Wallet, TrendingDown, PiggyBank, Plus, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -15,7 +17,7 @@ export const Route = createFileRoute("/dashboard")({
 function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { profile, transactions, loading } = useProfileData();
+  const { profile, categories, transactions, loading, refresh } = useProfileData();
 
   useEffect(() => {
     if (authLoading) return;
@@ -32,37 +34,98 @@ function Dashboard() {
   );
   const salary = Number(profile?.yearly_salary ?? 0);
   const remaining = salary - totalSpent;
+  const pct = salary > 0 ? Math.min(100, (totalSpent / salary) * 100) : 0;
+
+  const spentByCat = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of transactions) {
+      const k = t.category_id ?? "__none__";
+      map.set(k, (map.get(k) ?? 0) + Number(t.amount));
+    }
+    return map;
+  }, [transactions]);
 
   return (
     <AppShell>
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Yearly Salary" value={gbp(salary)} icon={<Wallet className="h-5 w-5" />} tone="primary" />
+        <StatCard title="Yearly Income" value={gbp(salary)} icon={<Wallet className="h-5 w-5" />} tone="primary" />
         <StatCard title="Total Spent" value={gbp(totalSpent)} icon={<TrendingDown className="h-5 w-5" />} tone="destructive" />
-        <StatCard title="Remaining" value={gbp(remaining)} icon={<PiggyBank className="h-5 w-5" />} tone={remaining >= 0 ? "success" : "destructive"} />
+        <StatCard
+          title="Remaining"
+          value={gbp(remaining)}
+          icon={<PiggyBank className="h-5 w-5" />}
+          tone={remaining >= 0 ? "success" : "destructive"}
+        />
       </div>
 
       <Card className="mt-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Recent transactions</CardTitle>
-          <Button asChild size="sm" variant="outline">
-            <Link to="/transactions">View all</Link>
-          </Button>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Yearly progress</CardTitle>
         </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {transactions.slice(0, 5).map((t) => (
-                <li key={t.id} className="py-2 flex justify-between text-sm">
-                  <span>{t.description || "Transaction"}</span>
-                  <span className="font-medium">{gbp(Number(t.amount))}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <CardContent className="space-y-2">
+          <Progress value={pct} className="h-3" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{gbp(totalSpent)} spent</span>
+            <span>{pct.toFixed(0)}% of {gbp(salary)}</span>
+          </div>
         </CardContent>
       </Card>
+
+      <div className="mt-6 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Categories</h2>
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/categories">
+            View all <ArrowRight className="ml-1 h-3 w-3" />
+          </Link>
+        </Button>
+      </div>
+
+      {categories.length === 0 ? (
+        <Card className="mt-3">
+          <CardContent className="py-6 text-sm text-muted-foreground">
+            No categories yet. Add some in <Link to="/settings" className="text-primary underline">Settings</Link>.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((c) => {
+            const spent = spentByCat.get(c.id) ?? 0;
+            return (
+              <Card key={c.id} className="group">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium">{c.name}</p>
+                      <p className="mt-1 text-2xl font-semibold">{gbp(spent)}</p>
+                      <p className="text-xs text-muted-foreground">spent this year</p>
+                    </div>
+                    <LogSpendDialog
+                      trigger={
+                        <Button size="icon" variant="secondary" className="rounded-full">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      }
+                      categoryId={c.id}
+                      categoryName={c.name}
+                      onSaved={refresh}
+                    />
+                  </div>
+                  <LogSpendDialog
+                    trigger={
+                      <Button variant="outline" size="sm" className="mt-4 w-full">
+                        Log spend
+                      </Button>
+                    }
+                    categoryId={c.id}
+                    categoryName={c.name}
+                    onSaved={refresh}
+                  />
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </AppShell>
   );
 }
