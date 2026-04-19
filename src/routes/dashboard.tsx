@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { AppShell } from "@/components/AppShell";
 import { LogSpendDialog } from "@/components/LogSpendDialog";
+import { AdviceChat } from "@/components/AdviceChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -70,6 +71,12 @@ function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="mt-6">
+        <AdviceChat
+          context={`Yearly income: ${gbp(salary)}. Spent so far: ${gbp(totalSpent)} (${pct.toFixed(0)}%). Remaining: ${gbp(remaining)}. Categories: ${categories.map((c) => `${c.name} (${gbp(spentByCat.get(c.id) ?? 0)})`).join(", ") || "none"}. Recent transactions: ${transactions.slice(0, 8).map((t) => `${t.description ?? "tx"} ${gbp(Number(t.amount))}`).join("; ") || "none"}.`}
+        />
+      </div>
 
       <div className="mt-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Categories</h2>
