@@ -8,8 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { gbp } from "@/lib/format";
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -68,7 +68,7 @@ function GraphPage() {
           ) : (
             <div className="h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
+                <LineChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="label"
@@ -83,7 +83,7 @@ function GraphPage() {
                     tickFormatter={(v) => `£${v}`}
                   />
                   <Tooltip
-                    cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
+                    cursor={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
                     contentStyle={{
                       background: "hsl(var(--popover))",
                       border: "1px solid hsl(var(--border))",
@@ -92,8 +92,15 @@ function GraphPage() {
                     }}
                     formatter={(value) => [gbp(Number(value)), "Spent"]}
                   />
-                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: "hsl(var(--primary))" }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           )}
