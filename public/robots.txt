@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://spend-wisely-financeadvice.lovable.app/sitemap.xml
