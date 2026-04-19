@@ -10,6 +10,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google-site-verification", content: "DzaaO7vXhroLoMFT0fPxsADDAq-3ha1IuwPUFo2vpdk" },
       { title: "Budget Tracker" },
       { name: "description", content: "Track your yearly budget and spending in £." },
       { property: "og:title", content: "Budget Tracker" },
