@@ -90,7 +90,7 @@ function GraphPage() {
                       borderRadius: 8,
                       color: "hsl(var(--popover-foreground))",
                     }}
-                    formatter={(value: number) => [gbp(value), "Spent"]}
+                    formatter={(value) => [gbp(Number(value)), "Spent"]}
                   />
                   <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                 </BarChart>
