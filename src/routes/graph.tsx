@@ -96,7 +96,7 @@ function GraphPage() {
                     type="monotone"
                     dataKey="amount"
                     stroke="hsl(var(--primary))"
-                    strokeWidth: 2
+                    strokeWidth={2}
                     dot={{ r: 3, fill: "hsl(var(--primary))" }}
                     activeDot={{ r: 5 }}
                   />
