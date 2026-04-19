@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Home, Receipt, FolderKanban, Settings, LogOut, Menu, X, Wallet } from "lucide-react";
+import { Home, Receipt, FolderKanban, Settings, LogOut, Menu, X, Wallet, CalendarDays, BarChart3 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
+  { to: "/monthly", label: "Monthly", icon: CalendarDays },
+  { to: "/graph", label: "Graph", icon: BarChart3 },
   { to: "/transactions", label: "Transactions", icon: Receipt },
   { to: "/categories", label: "Categories", icon: FolderKanban },
   { to: "/settings", label: "Settings", icon: Settings },
