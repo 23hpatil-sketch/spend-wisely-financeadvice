@@ -1,1 +1,4 @@
 project_id = "feupxyvghnlvukiogxxj"
+
+[functions.money-advice]
+verify_jwt = false
