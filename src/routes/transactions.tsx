@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search, X } from "lucide-react";
 import { gbp } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -27,6 +27,18 @@ function TransactionsPage() {
   const [desc, setDesc] = useState("");
   const [catId, setCatId] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return transactions;
+    return transactions.filter((t) => {
+      const desc = (t.description ?? "").toLowerCase();
+      const cat = (categories.find((c) => c.id === t.category_id)?.name ?? "uncategorised").toLowerCase();
+      const amt = String(t.amount);
+      return desc.includes(q) || cat.includes(q) || amt.includes(q);
+    });
+  }, [transactions, categories, query]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -62,8 +74,10 @@ function TransactionsPage() {
 
   return (
     <AppShell>
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-muted-foreground">{transactions.length} transactions</p>
+      <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} of {transactions.length} transactions
+        </p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-1" />Add</Button>
