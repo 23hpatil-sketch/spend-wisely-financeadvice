@@ -110,14 +110,36 @@ function TransactionsPage() {
         </Dialog>
       </div>
 
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by description, category, or amount…"
+          className="pl-9 pr-9"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
       <Card>
         <CardHeader><CardTitle className="text-base">All transactions</CardTitle></CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No transactions yet. Tap "Add" to record one.</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No transactions match "{query}".</p>
           ) : (
             <ul className="divide-y divide-border">
-              {transactions.map((t) => (
+              {filtered.map((t) => (
                 <li key={t.id} className="py-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{t.description || "Transaction"}</p>
