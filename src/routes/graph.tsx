@@ -8,8 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { gbp } from "@/lib/format";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -68,7 +68,13 @@ function GraphPage() {
           ) : (
             <div className="h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                <AreaChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="spendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="label"
@@ -92,15 +98,17 @@ function GraphPage() {
                     }}
                     formatter={(value) => [gbp(Number(value)), "Spent"]}
                   />
-                  <Line
-                    type="monotone"
+                  <Area
+                    type="linear"
                     dataKey="amount"
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
+                    fill="url(#spendFill)"
                     dot={{ r: 3, fill: "hsl(var(--primary))" }}
                     activeDot={{ r: 5 }}
+                    connectNulls
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
