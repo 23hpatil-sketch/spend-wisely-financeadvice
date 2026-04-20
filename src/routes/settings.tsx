@@ -9,8 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Plus, X, Sun, Moon } from "lucide-react";
+import { Plus, X, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
@@ -65,14 +64,30 @@ function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
-            <CardDescription>Switch between light and dark theme.</CardDescription>
+            <CardDescription>Choose Light, Dark, or follow your system.</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              <span className="capitalize">{theme} mode</span>
+          <CardContent className="flex items-center justify-between gap-4">
+            <span className="text-sm text-muted-foreground">Theme</span>
+            <div className="inline-flex rounded-lg border bg-muted/40 p-1">
+              {([
+                { v: "light", label: "Light", Icon: Sun },
+                { v: "dark", label: "Dark", Icon: Moon },
+                { v: "system", label: "System", Icon: Monitor },
+              ] as const).map(({ v, label, Icon }) => (
+                <button
+                  key={v}
+                  onClick={() => setTheme(v)}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                    theme === v
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              ))}
             </div>
-            <Switch checked={theme === "dark"} onCheckedChange={(v) => setTheme(v ? "dark" : "light")} />
           </CardContent>
         </Card>
 
