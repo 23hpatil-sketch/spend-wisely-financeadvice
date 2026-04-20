@@ -1,24 +1,107 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Send, Bot, User as UserIcon } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Sparkles, Send, Bot, User as UserIcon, History, Plus, Trash2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 type Msg = { role: "user" | "assistant"; content: string };
+type Conversation = { id: string; title: string; updated_at: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/money-advice`;
 
 export function AdviceChat({ context }: { context: string }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const loadConversations = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("chat_conversations")
+      .select("id, title, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false });
+    setConversations((data ?? []) as Conversation[]);
+  };
+
+  useEffect(() => {
+    loadConversations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    });
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setConversationId(null);
+    setInput("");
+  };
+
+  const openConversation = async (id: string) => {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("conversation_id", id)
+      .order("created_at");
+    if (error) return toast.error("Couldn't load conversation");
+    setMessages((data ?? []) as Msg[]);
+    setConversationId(id);
+    setHistoryOpen(false);
+    scrollToBottom();
+  };
+
+  const deleteConversation = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase.from("chat_conversations").delete().eq("id", id);
+    if (error) return toast.error("Couldn't delete");
+    if (conversationId === id) startNewChat();
+    await loadConversations();
+  };
+
+  const ensureConversation = async (firstUserText: string): Promise<string | null> => {
+    if (!user) return null;
+    if (conversationId) return conversationId;
+    const title = firstUserText.slice(0, 60) + (firstUserText.length > 60 ? "…" : "");
+    const { data, error } = await supabase
+      .from("chat_conversations")
+      .insert({ user_id: user.id, title })
+      .select("id")
+      .single();
+    if (error || !data) {
+      toast.error("Couldn't save chat");
+      return null;
+    }
+    setConversationId(data.id);
+    return data.id;
+  };
+
+  const saveMessage = async (convId: string, msg: Msg) => {
+    if (!user) return;
+    await supabase.from("chat_messages").insert({
+      conversation_id: convId,
+      user_id: user.id,
+      role: msg.role,
+      content: msg.content,
     });
   };
 
@@ -32,6 +115,9 @@ export function AdviceChat({ context }: { context: string }) {
     setInput("");
     setLoading(true);
     scrollToBottom();
+
+    const convId = await ensureConversation(text);
+    if (convId) await saveMessage(convId, userMsg);
 
     let assistantSoFar = "";
     const upsert = (chunk: string) => {
@@ -101,6 +187,11 @@ export function AdviceChat({ context }: { context: string }) {
           }
         }
       }
+
+      if (convId && assistantSoFar) {
+        await saveMessage(convId, { role: "assistant", content: assistantSoFar });
+        await loadConversations();
+      }
     } catch (err) {
       console.error(err);
       toast.error("Network error — please try again.");
@@ -112,12 +203,82 @@ export function AdviceChat({ context }: { context: string }) {
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          Want advice for money spendings?
-        </CardTitle>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle className="text-base flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            Want advice for money spendings?
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={startNewChat} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" /> New chat
+            </Button>
+            <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={loadConversations}>
+                  <History className="h-3.5 w-3.5" /> History
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[320px] sm:w-[380px] p-0 flex flex-col">
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" /> Chat history
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="p-3 border-b">
+                  <Button
+                    onClick={() => { startNewChat(); setHistoryOpen(false); }}
+                    className="w-full justify-start gap-2"
+                    variant="secondary"
+                  >
+                    <Plus className="h-4 w-4" /> New chat
+                  </Button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                  {conversations.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8 px-4">
+                      No saved chats yet. Start one and click "New chat" to save it.
+                    </p>
+                  ) : (
+                    conversations.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => openConversation(c.id)}
+                        className={cn(
+                          "group w-full text-left rounded-md px-3 py-2.5 text-sm transition-colors flex items-start gap-2",
+                          conversationId === c.id
+                            ? "bg-primary/10 text-foreground"
+                            : "hover:bg-muted"
+                        )}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground" />
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate font-medium">{c.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(c.updated_at).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => deleteConversation(c.id, e)}
+                          aria-label="Delete chat"
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 hover:text-destructive rounded"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {messages.length > 0 && (
