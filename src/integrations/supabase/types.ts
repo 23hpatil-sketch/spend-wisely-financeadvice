@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_items: {
+        Row: {
+          created_at: string
+          cursor: string | null
+          id: string
+          institution_id: string | null
+          institution_name: string | null
+          last_synced_at: string | null
+          plaid_access_token: string
+          plaid_item_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cursor?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_name?: string | null
+          last_synced_at?: string | null
+          plaid_access_token: string
+          plaid_item_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cursor?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_name?: string | null
+          last_synced_at?: string | null
+          plaid_access_token?: string
+          plaid_item_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -121,32 +163,51 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          bank_item_id: string | null
           category_id: string | null
           created_at: string
           description: string | null
+          external_id: string | null
           id: string
+          merchant_name: string | null
           occurred_at: string
+          pending_category: boolean
           user_id: string
         }
         Insert: {
           amount: number
+          bank_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
+          external_id?: string | null
           id?: string
+          merchant_name?: string | null
           occurred_at?: string
+          pending_category?: boolean
           user_id: string
         }
         Update: {
           amount?: number
+          bank_item_id?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
+          external_id?: string | null
           id?: string
+          merchant_name?: string | null
           occurred_at?: string
+          pending_category?: boolean
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_bank_item_id_fkey"
+            columns: ["bank_item_id"]
+            isOneToOne: false
+            referencedRelation: "bank_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
