@@ -21,22 +21,33 @@ function SettingsPage() {
   const navigate = useNavigate();
   const { profile, categories, refresh } = useProfileData();
   const { theme, setTheme } = useTheme();
-  const [salary, setSalary] = useState("");
+  const [monthlySalary, setMonthlySalary] = useState("");
   const [newCat, setNewCat] = useState("");
+  const [budgetDrafts, setBudgetDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (profile) setSalary(String(profile.yearly_salary));
+    if (profile) setMonthlySalary(String(Math.round((profile.yearly_salary / 12) * 100) / 100));
   }, [profile]);
+
+  useEffect(() => {
+    setBudgetDrafts((prev) => {
+      const next: Record<string, string> = {};
+      for (const c of categories) {
+        next[c.id] = prev[c.id] ?? String(c.monthly_budget ?? 0);
+      }
+      return next;
+    });
+  }, [categories]);
 
   const saveSalary = async () => {
     if (!user) return;
-    const v = parseFloat(salary);
+    const v = parseFloat(monthlySalary);
     if (Number.isNaN(v) || v < 0) return toast.error("Invalid salary.");
-    const { error } = await supabase.from("profiles").update({ yearly_salary: v }).eq("id", user.id);
+    const { error } = await supabase.from("profiles").update({ yearly_salary: v * 12 }).eq("id", user.id);
     if (error) return toast.error(error.message);
     toast.success("Salary updated");
     await refresh();
@@ -55,6 +66,16 @@ function SettingsPage() {
   const removeCat = async (id: string) => {
     const { error } = await supabase.from("categories").delete().eq("id", id);
     if (error) return toast.error(error.message);
+    await refresh();
+  };
+
+  const saveBudget = async (id: string) => {
+    const raw = budgetDrafts[id] ?? "";
+    const v = parseFloat(raw);
+    if (Number.isNaN(v) || v < 0) return toast.error("Invalid budget.");
+    const { error } = await supabase.from("categories").update({ monthly_budget: v }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Budget saved");
     await refresh();
   };
 
@@ -93,13 +114,13 @@ function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Yearly salary</CardTitle>
+            <CardTitle>Monthly salary</CardTitle>
             <CardDescription>Used to calculate your remaining budget.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Label htmlFor="sal">Salary (£ / year)</Label>
+            <Label htmlFor="sal">Salary (£ / month)</Label>
             <div className="flex gap-2">
-              <Input id="sal" type="number" min="0" step="0.01" value={salary} onChange={(e) => setSalary(e.target.value)} />
+              <Input id="sal" type="number" min="0" step="0.01" value={monthlySalary} onChange={(e) => setMonthlySalary(e.target.value)} />
               <Button onClick={saveSalary}>Save</Button>
             </div>
           </CardContent>
@@ -108,20 +129,37 @@ function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Categories</CardTitle>
-            <CardDescription>Add or remove spending categories.</CardDescription>
+            <CardDescription>Add, remove, and set a monthly budget per category.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((c) => (
-                <span key={c.id} className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm">
-                  {c.name}
-                  <button onClick={() => removeCat(c.id)} aria-label={`Remove ${c.name}`}>
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              {categories.length === 0 && <p className="text-sm text-muted-foreground">No categories yet.</p>}
-            </div>
+            {categories.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No categories yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {categories.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2">
+                    <span className="flex-1 text-sm font-medium truncate">{c.name}</span>
+                    <div className="relative w-28">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">£</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="h-9 pl-5 text-sm"
+                        value={budgetDrafts[c.id] ?? ""}
+                        onChange={(e) => setBudgetDrafts({ ...budgetDrafts, [c.id]: e.target.value })}
+                        onBlur={() => {
+                          if ((budgetDrafts[c.id] ?? "") !== String(c.monthly_budget)) saveBudget(c.id);
+                        }}
+                      />
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => removeCat(c.id)} aria-label={`Remove ${c.name}`}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
               <Input
                 placeholder="Add category"

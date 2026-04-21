@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export type Profile = { id: string; yearly_salary: number; onboarded: boolean };
-export type Category = { id: string; name: string };
+export type Category = { id: string; name: string; monthly_budget: number };
 export type Transaction = {
   id: string;
   amount: number;
@@ -28,7 +28,11 @@ export function useProfileData() {
       supabase.from("transactions").select("*").eq("user_id", user.id).order("occurred_at", { ascending: false }),
     ]);
     setProfile(p as Profile | null);
-    setCategories((c ?? []) as Category[]);
+    setCategories(((c ?? []) as any[]).map((r) => ({
+      id: r.id,
+      name: r.name,
+      monthly_budget: Number(r.monthly_budget ?? 0),
+    })) as Category[]);
     setTransactions(((t ?? []) as any[]).map((r) => ({ ...r, amount: Number(r.amount) })));
     setLoading(false);
   }, [user]);
