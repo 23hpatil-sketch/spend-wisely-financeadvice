@@ -58,12 +58,12 @@ function Dashboard() {
 
   const spentByCat = useMemo(() => {
     const map = new Map<string, number>();
-    for (const t of monthlyTx) {
+    for (const t of yearlyTx) {
       const k = t.category_id ?? "__none__";
       map.set(k, (map.get(k) ?? 0) + Number(t.amount));
     }
     return map;
-  }, [monthlyTx]);
+  }, [yearlyTx]);
 
   return (
     <AppShell>
@@ -116,7 +116,7 @@ function Dashboard() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((c) => {
             const spent = spentByCat.get(c.id) ?? 0;
-            const budget = Number(c.monthly_budget ?? 0);
+            const budget = Number(c.monthly_budget ?? 0) * 12;
             const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
             const over = budget > 0 && spent > budget;
             return (
@@ -129,7 +129,7 @@ function Dashboard() {
                         {gbp(spent)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        spent of {gbp(budget)}
+                        spent of {gbp(budget)} / yr
                       </p>
                     </div>
                     <LogSpendDialog
