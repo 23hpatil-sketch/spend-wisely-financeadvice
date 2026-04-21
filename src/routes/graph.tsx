@@ -72,41 +72,42 @@ function GraphPage() {
                 <AreaChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="spendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.45} />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="label"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
                     tickLine={false}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    axisLine={{ stroke: "var(--border)" }}
                   />
                   <YAxis
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
                     tickLine={false}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    axisLine={{ stroke: "var(--border)" }}
                     tickFormatter={(v) => `£${v}`}
                   />
                   <Tooltip
-                    cursor={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
+                    cursor={{ stroke: "var(--muted-foreground)", strokeWidth: 1 }}
                     contentStyle={{
-                      background: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
                       borderRadius: 8,
-                      color: "hsl(var(--popover-foreground))",
+                      color: "var(--popover-foreground)",
                     }}
                     formatter={(value) => [gbp(Number(value)), "Spent"]}
                   />
+                  <ReferenceLine y={avg} stroke="var(--muted-foreground)" strokeDasharray="4 4" strokeOpacity={0.6} />
                   <Area
-                    type="linear"
+                    type="monotone"
                     dataKey="amount"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
+                    stroke="var(--primary)"
+                    strokeWidth={2.5}
                     fill="url(#spendFill)"
-                    dot={{ r: 3, fill: "hsl(var(--primary))" }}
-                    activeDot={{ r: 5 }}
+                    dot={{ r: 3, fill: "var(--primary)", stroke: "var(--primary)" }}
+                    activeDot={{ r: 5, fill: "var(--primary)" }}
                     connectNulls
                   />
                 </AreaChart>
