@@ -14,6 +14,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 
 type Range = "daily" | "weekly" | "monthly" | "yearly";
