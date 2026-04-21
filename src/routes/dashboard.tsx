@@ -29,22 +29,33 @@ function Dashboard() {
     if (!loading && profile && !profile.onboarded) navigate({ to: "/onboarding" });
   }, [profile, loading, navigate]);
 
-  const totalSpent = useMemo(
-    () => transactions.reduce((s, t) => s + Number(t.amount), 0),
-    [transactions]
+  const monthStart = useMemo(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+  }, []);
+
+  const monthlyTx = useMemo(
+    () => transactions.filter((t) => new Date(t.occurred_at).getTime() >= monthStart),
+    [transactions, monthStart]
   );
-  const salary = Number(profile?.yearly_salary ?? 0);
-  const remaining = salary - totalSpent;
-  const pct = salary > 0 ? Math.min(100, (totalSpent / salary) * 100) : 0;
+
+  const totalSpent = useMemo(
+    () => monthlyTx.reduce((s, t) => s + Number(t.amount), 0),
+    [monthlyTx]
+  );
+  const yearlySalary = Number(profile?.yearly_salary ?? 0);
+  const monthlySalary = yearlySalary / 12;
+  const remaining = monthlySalary - totalSpent;
+  const pct = monthlySalary > 0 ? Math.min(100, (totalSpent / monthlySalary) * 100) : 0;
 
   const spentByCat = useMemo(() => {
     const map = new Map<string, number>();
-    for (const t of transactions) {
+    for (const t of monthlyTx) {
       const k = t.category_id ?? "__none__";
       map.set(k, (map.get(k) ?? 0) + Number(t.amount));
     }
     return map;
-  }, [transactions]);
+  }, [monthlyTx]);
 
   return (
     <AppShell>
