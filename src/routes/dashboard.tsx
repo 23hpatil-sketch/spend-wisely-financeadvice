@@ -60,8 +60,8 @@ function Dashboard() {
   return (
     <AppShell>
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Yearly Income" value={gbp(salary)} icon={<Wallet className="h-5 w-5" />} tone="primary" />
-        <StatCard title="Total Spent" value={gbp(totalSpent)} icon={<TrendingDown className="h-5 w-5" />} tone="destructive" />
+        <StatCard title="Yearly Income" value={gbp(yearlySalary)} icon={<Wallet className="h-5 w-5" />} tone="primary" />
+        <StatCard title="Spent this month" value={gbp(totalSpent)} icon={<TrendingDown className="h-5 w-5" />} tone="destructive" />
         <StatCard
           title="Remaining"
           value={gbp(remaining)}
@@ -72,20 +72,20 @@ function Dashboard() {
 
       <Card className="mt-6">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Yearly progress</CardTitle>
+          <CardTitle className="text-base">Monthly progress</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Progress value={pct} className="h-3" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{gbp(totalSpent)} spent</span>
-            <span>{pct.toFixed(0)}% of {gbp(salary)}</span>
+            <span>{pct.toFixed(0)}% of {gbp(monthlySalary)}</span>
           </div>
         </CardContent>
       </Card>
 
       <div className="mt-6">
         <AdviceChat
-          context={`Yearly income: ${gbp(salary)}. Spent so far: ${gbp(totalSpent)} (${pct.toFixed(0)}%). Remaining: ${gbp(remaining)}. Categories: ${categories.map((c) => `${c.name} (${gbp(spentByCat.get(c.id) ?? 0)})`).join(", ") || "none"}. Recent transactions: ${transactions.slice(0, 8).map((t) => `${t.description ?? "tx"} ${gbp(Number(t.amount))}`).join("; ") || "none"}.`}
+          context={`Yearly income: ${gbp(yearlySalary)} (monthly ${gbp(monthlySalary)}). Spent this month: ${gbp(totalSpent)} (${pct.toFixed(0)}%). Remaining this month: ${gbp(remaining)}. Categories: ${categories.map((c) => `${c.name} (${gbp(spentByCat.get(c.id) ?? 0)} of ${gbp(Number(c.monthly_budget ?? 0))})`).join(", ") || "none"}. Recent transactions: ${transactions.slice(0, 8).map((t) => `${t.description ?? "tx"} ${gbp(Number(t.amount))}`).join("; ") || "none"}.`}
         />
       </div>
 
