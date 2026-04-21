@@ -97,14 +97,21 @@ function Dashboard() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((c) => {
             const spent = spentByCat.get(c.id) ?? 0;
+            const budget = Number(c.monthly_budget ?? 0);
+            const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+            const over = budget > 0 && spent > budget;
             return (
               <Card key={c.id} className="group">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium">{c.name}</p>
-                      <p className="mt-1 text-2xl font-semibold">{gbp(spent)}</p>
-                      <p className="text-xs text-muted-foreground">spent this year</p>
+                      <p className={`mt-1 text-2xl font-semibold ${over ? "text-destructive" : ""}`}>
+                        {gbp(spent)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        spent of {gbp(budget)}
+                      </p>
                     </div>
                     <LogSpendDialog
                       trigger={
@@ -117,6 +124,9 @@ function Dashboard() {
                       onSaved={refresh}
                     />
                   </div>
+                  {budget > 0 && (
+                    <Progress value={pct} className="mt-3 h-2" />
+                  )}
                   <LogSpendDialog
                     trigger={
                       <Button variant="outline" size="sm" className="mt-4 w-full">
