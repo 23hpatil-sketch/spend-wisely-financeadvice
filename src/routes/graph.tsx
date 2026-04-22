@@ -22,6 +22,11 @@ type Range = "daily" | "weekly" | "monthly" | "yearly";
 declare global {
   interface Window {
     median_admob_rewarded_didReward?: () => void;
+    median?: {
+      admob?: {
+        interstitial?: { show: () => void };
+      };
+    };
   }
 }
 
@@ -50,7 +55,12 @@ function GraphPage() {
   }, []);
 
   const handleShowGraph = () => {
-    (window as any).location.href = "median://admob/rewarded/show?id=YOUR_AD_UNIT_ID";
+    try {
+      window.median?.admob?.interstitial?.show();
+    } catch {
+      // no-op outside Median wrapper
+    }
+    setHasWatchedAd(true);
   };
 
   const data = useMemo(() => buildData(transactions, range), [transactions, range]);
@@ -88,12 +98,11 @@ function GraphPage() {
             </p>
           ) : !hasWatchedAd ? (
             <div className="h-[360px] w-full flex flex-col items-center justify-center gap-4">
-              <p className="text-sm text-muted-foreground">Watch an ad to unlock your graph</p>
               <button
                 onClick={handleShowGraph}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition"
               >
-                Watch Ad
+                View My Graph
               </button>
             </div>
           ) : (
