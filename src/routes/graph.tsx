@@ -28,10 +28,24 @@ function GraphPage() {
   const navigate = useNavigate();
   const { transactions } = useProfileData();
   const [range, setRange] = useState<Range>("monthly");
+  const [hasWatchedAd, setHasWatchedAd] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    window.median_admob_rewarded_didReward = () => {
+      setHasWatchedAd(true);
+    };
+    return () => {
+      delete (window as any).median_admob_rewarded_didReward;
+    };
+  }, []);
+
+  const handleShowGraph = () => {
+    (window as any).location.href = "median://admob/rewarded/show?id=YOUR_AD_UNIT_ID";
+  };
 
   const data = useMemo(() => buildData(transactions, range), [transactions, range]);
   const total = data.reduce((s, d) => s + d.amount, 0);
@@ -66,6 +80,16 @@ function GraphPage() {
             <p className="text-sm text-muted-foreground py-12 text-center">
               No transactions yet — log a spend to see your chart.
             </p>
+          ) : !hasWatchedAd ? (
+            <div className="h-[360px] w-full flex flex-col items-center justify-center gap-4">
+              <p className="text-sm text-muted-foreground">Watch an ad to unlock your graph</p>
+              <button
+                onClick={handleShowGraph}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition"
+              >
+                Watch Ad
+              </button>
+            </div>
           ) : (
             <div className="h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
