@@ -19,6 +19,12 @@ import {
 
 type Range = "daily" | "weekly" | "monthly" | "yearly";
 
+declare global {
+  interface Window {
+    median_admob_rewarded_didReward?: () => void;
+  }
+}
+
 export const Route = createFileRoute("/graph")({
   component: GraphPage,
 });
