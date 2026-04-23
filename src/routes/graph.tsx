@@ -19,17 +19,6 @@ import {
 
 type Range = "daily" | "weekly" | "monthly" | "yearly";
 
-declare global {
-  interface Window {
-    median_admob_rewarded_didReward?: () => void;
-    median?: {
-      admob?: {
-        interstitial?: { show: () => void };
-      };
-    };
-  }
-}
-
 export const Route = createFileRoute("/graph")({
   component: GraphPage,
 });
@@ -39,29 +28,10 @@ function GraphPage() {
   const navigate = useNavigate();
   const { transactions } = useProfileData();
   const [range, setRange] = useState<Range>("monthly");
-  const [hasWatchedAd, setHasWatchedAd] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
   }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    window.median_admob_rewarded_didReward = () => {
-      setHasWatchedAd(true);
-    };
-    return () => {
-      delete (window as any).median_admob_rewarded_didReward;
-    };
-  }, []);
-
-  const handleShowGraph = () => {
-    try {
-      window.median?.admob?.interstitial?.show();
-    } catch {
-      // no-op outside Median wrapper
-    }
-    setHasWatchedAd(true);
-  };
 
   const data = useMemo(() => buildData(transactions, range), [transactions, range]);
   const total = data.reduce((s, d) => s + d.amount, 0);
