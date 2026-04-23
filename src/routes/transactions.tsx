@@ -87,6 +87,7 @@ function TransactionsPage() {
 
   return (
     <AppShell>
+      <AdGate page="transactions" rewardLabel="View your transactions">
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
         <p className="text-sm text-muted-foreground">
           {filtered.length} of {transactions.length} transactions
@@ -172,6 +173,7 @@ function TransactionsPage() {
           )}
         </CardContent>
       </Card>
+      </AdGate>
     </AppShell>
   );
 }
