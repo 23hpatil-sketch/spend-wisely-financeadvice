@@ -66,15 +66,6 @@ function GraphPage() {
             <p className="text-sm text-muted-foreground py-12 text-center">
               No transactions yet — log a spend to see your chart.
             </p>
-          ) : !hasWatchedAd ? (
-            <div className="h-[360px] w-full flex flex-col items-center justify-center gap-4">
-              <button
-                onClick={handleShowGraph}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition"
-              >
-                View My Graph
-              </button>
-            </div>
           ) : (
             <div className="h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
