@@ -77,7 +77,6 @@ export function AdGate({ page, rewardLabel, children }: Props) {
               : `Watch a short video ad to ${rewardLabel.toLowerCase()}.`}
           </p>
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Views remaining today: <span className="font-medium text-foreground">{viewsRemaining} / {DAILY_VIEW_LIMIT}</span></p>
             <p>Ads remaining today: <span className="font-medium text-foreground">{adsRemaining} / {DAILY_AD_LIMIT}</span></p>
           </div>
           <Button onClick={handleWatch} disabled={loading || blocked} className="w-full">
