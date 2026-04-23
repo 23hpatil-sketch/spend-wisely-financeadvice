@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { AdGate } from "@/components/AdGate";
 import { useRewardedAd, getTxnSinceLastAd, setTxnSinceLastAd } from "@/lib/rewardedAds";
+import { useIsPro } from "@/lib/pro";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ function TransactionsPage() {
   const navigate = useNavigate();
   const { categories, transactions, refresh } = useProfileData();
   const { showAd } = useRewardedAd();
+  const isPro = useIsPro();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
@@ -68,14 +70,16 @@ function TransactionsPage() {
     await refresh();
     toast.success("Transaction added");
 
-    // Show a rewarded ad every 3 transactions
-    const count = getTxnSinceLastAd(user.id) + 1;
-    if (count >= 3) {
-      setTxnSinceLastAd(user.id, 0);
-      toast.info("Quick ad break — thanks for supporting us!");
-      await showAd();
-    } else {
-      setTxnSinceLastAd(user.id, count);
+    // Show a rewarded ad every 3 transactions (skipped for Pro members)
+    if (!isPro) {
+      const count = getTxnSinceLastAd(user.id) + 1;
+      if (count >= 3) {
+        setTxnSinceLastAd(user.id, 0);
+        toast.info("Quick ad break — thanks for supporting us!");
+        await showAd();
+      } else {
+        setTxnSinceLastAd(user.id, count);
+      }
     }
   };
 

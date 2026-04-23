@@ -5,11 +5,12 @@ import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/lib/theme";
 import { AppShell } from "@/components/AppShell";
+import { usePro } from "@/lib/pro";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, X, Sun, Moon, Monitor } from "lucide-react";
+import { Plus, X, Sun, Moon, Monitor, Crown, Check, Download, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
@@ -21,6 +22,7 @@ function SettingsPage() {
   const navigate = useNavigate();
   const { profile, categories, refresh } = useProfileData();
   const { theme, setTheme } = useTheme();
+  const { isPro, loading: proLoading, launchPaywall, restore } = usePro();
   const [monthlySalary, setMonthlySalary] = useState("");
   const [newCat, setNewCat] = useState("");
   const [budgetDrafts, setBudgetDrafts] = useState<Record<string, string>>({});
@@ -82,6 +84,53 @@ function SettingsPage() {
   return (
     <AppShell>
       <div className="space-y-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Premium Subscription
+              {isPro && (
+                <span className="ml-1 text-xs font-medium rounded-full bg-primary/10 text-primary px-2 py-0.5">
+                  Active
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription>
+              {isPro
+                ? "Thanks for being a Premium member — enjoy ad-free access and downloads."
+                : "Unlock the best of Spend Wisely."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <Download className="h-4 w-4 text-primary" />
+                Download your spending graph for any time period
+              </li>
+              <li className="flex items-center gap-2">
+                <ShieldOff className="h-4 w-4 text-primary" />
+                Remove all ads — no interruptions, no daily limits
+              </li>
+            </ul>
+            <div className="flex gap-2 flex-wrap">
+              {isPro ? (
+                <Button variant="outline" onClick={restore} disabled={proLoading}>
+                  <Check className="h-4 w-4 mr-1" /> Manage / Refresh
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={launchPaywall} disabled={proLoading}>
+                    <Crown className="h-4 w-4 mr-1" /> Upgrade to Premium
+                  </Button>
+                  <Button variant="outline" onClick={restore} disabled={proLoading}>
+                    Restore purchases
+                  </Button>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>

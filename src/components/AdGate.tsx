@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
+import { useIsPro } from "@/lib/pro";
 import {
   DAILY_AD_LIMIT,
   DAILY_VIEW_LIMIT,
@@ -26,6 +27,7 @@ type Props = {
  */
 export function AdGate({ page, rewardLabel, children }: Props) {
   const { user } = useAuth();
+  const isPro = useIsPro();
   const { showAd, loading, adsRemaining } = useRewardedAd();
   const [unlocked, setUnlocked] = useState(false);
   const [viewsUsed, setViewsUsed] = useState(0);
@@ -57,7 +59,8 @@ export function AdGate({ page, rewardLabel, children }: Props) {
     }
   };
 
-  if (unlocked) return <>{children}</>;
+  // Pro users skip ads entirely
+  if (isPro || unlocked) return <>{children}</>;
 
   const blocked = viewsRemaining <= 0 || adsRemaining <= 0;
 
