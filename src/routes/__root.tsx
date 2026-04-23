@@ -2,6 +2,7 @@ import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-r
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
+import { ProProvider } from "@/lib/pro";
 import { DailyReminder } from "@/components/DailyReminder";
 
 import appCss from "../styles.css?url";
@@ -52,9 +53,11 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Outlet />
-        <Toaster />
-        <DailyReminder />
+        <ProProvider>
+          <Outlet />
+          <Toaster />
+          <DailyReminder />
+        </ProProvider>
       </AuthProvider>
     </ThemeProvider>
   );
