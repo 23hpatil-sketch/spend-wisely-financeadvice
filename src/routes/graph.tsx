@@ -4,8 +4,12 @@ import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { AppShell } from "@/components/AppShell";
 import { AdGate } from "@/components/AdGate";
+import { useIsPro, usePro } from "@/lib/pro";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Download, Crown } from "lucide-react";
+import { toast } from "sonner";
 import { gbp } from "@/lib/format";
 import {
   ResponsiveContainer,
@@ -29,6 +33,8 @@ function GraphPage() {
   const navigate = useNavigate();
   const { transactions } = useProfileData();
   const [range, setRange] = useState<Range>("monthly");
+  const isPro = useIsPro();
+  const { launchPaywall } = usePro();
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -37,6 +43,30 @@ function GraphPage() {
   const data = useMemo(() => buildData(transactions, range), [transactions, range]);
   const total = data.reduce((s, d) => s + d.amount, 0);
   const avg = data.length ? total / data.length : 0;
+
+  const downloadCsv = () => {
+    if (!isPro) {
+      toast.info("Premium subscription required to download.");
+      launchPaywall();
+      return;
+    }
+    if (data.length === 0) {
+      toast.error("No data to download.");
+      return;
+    }
+    const header = "Period,Amount (GBP)\n";
+    const rows = data.map((d) => `"${d.label}",${d.amount}`).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `spend-wisely-${range}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Graph data downloaded");
+  };
 
   return (
     <AppShell>
@@ -49,14 +79,20 @@ function GraphPage() {
             avg {gbp(avg)} / {labelFor(range)}
           </p>
         </div>
-        <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
-          <TabsList>
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="yearly">Yearly</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
+            <TabsList>
+              <TabsTrigger value="daily">Daily</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="yearly">Yearly</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button variant="outline" size="sm" onClick={downloadCsv}>
+            {isPro ? <Download className="h-4 w-4 mr-1" /> : <Crown className="h-4 w-4 mr-1" />}
+            Download
+          </Button>
+        </div>
       </div>
 
       <Card>
