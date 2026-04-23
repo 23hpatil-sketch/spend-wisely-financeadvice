@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { AdGate } from "@/components/AdGate";
+import { useRewardedAd, getTxnSinceLastAd, setTxnSinceLastAd } from "@/lib/rewardedAds";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +24,7 @@ function TransactionsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { categories, transactions, refresh } = useProfileData();
+  const { showAd } = useRewardedAd();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
@@ -64,6 +67,16 @@ function TransactionsPage() {
     setOpen(false);
     await refresh();
     toast.success("Transaction added");
+
+    // Show a rewarded ad every 3 transactions
+    const count = getTxnSinceLastAd(user.id) + 1;
+    if (count >= 3) {
+      setTxnSinceLastAd(user.id, 0);
+      toast.info("Quick ad break — thanks for supporting us!");
+      await showAd();
+    } else {
+      setTxnSinceLastAd(user.id, count);
+    }
   };
 
   const remove = async (id: string) => {
@@ -74,6 +87,7 @@ function TransactionsPage() {
 
   return (
     <AppShell>
+      <AdGate page="transactions" rewardLabel="View your transactions">
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
         <p className="text-sm text-muted-foreground">
           {filtered.length} of {transactions.length} transactions
@@ -159,6 +173,7 @@ function TransactionsPage() {
           )}
         </CardContent>
       </Card>
+      </AdGate>
     </AppShell>
   );
 }

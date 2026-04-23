@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { AppShell } from "@/components/AppShell";
+import { AdGate } from "@/components/AdGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { gbp } from "@/lib/format";
@@ -39,6 +40,7 @@ function GraphPage() {
 
   return (
     <AppShell>
+      <AdGate page="graph" rewardLabel="View your spending graph">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <div>
           <p className="text-sm text-muted-foreground">Spending overview</p>
@@ -116,6 +118,7 @@ function GraphPage() {
           )}
         </CardContent>
       </Card>
+      </AdGate>
     </AppShell>
   );
 }
