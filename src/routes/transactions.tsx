@@ -24,6 +24,7 @@ function TransactionsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { categories, transactions, refresh } = useProfileData();
+  const { showAd } = useRewardedAd();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
@@ -66,6 +67,16 @@ function TransactionsPage() {
     setOpen(false);
     await refresh();
     toast.success("Transaction added");
+
+    // Show a rewarded ad every 3 transactions
+    const count = getTxnSinceLastAd(user.id) + 1;
+    if (count >= 3) {
+      setTxnSinceLastAd(user.id, 0);
+      toast.info("Quick ad break — thanks for supporting us!");
+      await showAd();
+    } else {
+      setTxnSinceLastAd(user.id, count);
+    }
   };
 
   const remove = async (id: string) => {
