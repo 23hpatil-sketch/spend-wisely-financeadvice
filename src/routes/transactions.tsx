@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { AdGate } from "@/components/AdGate";
+import { useRewardedAd, getTxnSinceLastAd, setTxnSinceLastAd } from "@/lib/rewardedAds";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
