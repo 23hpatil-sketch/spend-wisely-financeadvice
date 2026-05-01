@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, X, Sun, Moon, Monitor, Crown, Check, Download, ShieldOff } from "lucide-react";
+import { Plus, X, Sun, Moon, Crown, Check, Download, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
@@ -134,7 +134,7 @@ function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
-            <CardDescription>Choose Light, Dark, or follow your system.</CardDescription>
+            <CardDescription>Choose Light or Dark.</CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">
             <span className="text-sm text-muted-foreground">Theme</span>
@@ -142,7 +142,6 @@ function SettingsPage() {
               {([
                 { v: "light", label: "Light", Icon: Sun },
                 { v: "dark", label: "Dark", Icon: Moon },
-                { v: "system", label: "System", Icon: Monitor },
               ] as const).map(({ v, label, Icon }) => (
                 <button
                   key={v}
