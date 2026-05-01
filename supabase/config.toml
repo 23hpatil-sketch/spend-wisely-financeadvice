@@ -2,3 +2,6 @@ project_id = "feupxyvghnlvukiogxxj"
 
 [functions.money-advice]
 verify_jwt = false
+
+[functions.scan-receipt]
+verify_jwt = true

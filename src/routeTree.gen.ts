@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MonthlyRouteImport } from './routes/monthly'
 import { Route as GraphRouteImport } from './routes/graph'
@@ -33,6 +34,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/graph': typeof GraphRoute
   '/monthly': typeof MonthlyRoute
   '/onboarding': typeof OnboardingRoute
+  '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/graph': typeof GraphRoute
   '/monthly': typeof MonthlyRoute
   '/onboarding': typeof OnboardingRoute
+  '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/graph': typeof GraphRoute
   '/monthly': typeof MonthlyRoute
   '/onboarding': typeof OnboardingRoute
+  '/scan': typeof ScanRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/monthly'
     | '/onboarding'
+    | '/scan'
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/monthly'
     | '/onboarding'
+    | '/scan'
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/monthly'
     | '/onboarding'
+    | '/scan'
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   GraphRoute: typeof GraphRoute
   MonthlyRoute: typeof MonthlyRoute
   OnboardingRoute: typeof OnboardingRoute
+  ScanRoute: typeof ScanRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TransactionsRoute: typeof TransactionsRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   GraphRoute: GraphRoute,
   MonthlyRoute: MonthlyRoute,
   OnboardingRoute: OnboardingRoute,
+  ScanRoute: ScanRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TransactionsRoute: TransactionsRoute,
