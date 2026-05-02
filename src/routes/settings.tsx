@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { DeleteCategoryDialog } from "@/components/DeleteCategoryDialog";
 import { useTheme } from "@/lib/theme";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,12 +61,6 @@ function SettingsPage() {
     const { error } = await supabase.from("categories").insert({ user_id: user.id, name: v });
     if (error) return toast.error(error.message);
     setNewCat("");
-    await refresh();
-  };
-
-  const removeCat = async (id: string) => {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
     await refresh();
   };
 
@@ -152,9 +147,16 @@ function SettingsPage() {
                         }}
                       />
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeCat(c.id)} aria-label={`Remove ${c.name}`}>
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <DeleteCategoryDialog
+                      categoryId={c.id}
+                      categoryName={c.name}
+                      onDeleted={refresh}
+                      trigger={
+                        <Button variant="ghost" size="icon" aria-label={`Remove ${c.name}`}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                   </div>
                 ))}
               </div>
