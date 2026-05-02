@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, ImageIcon, Loader2, RotateCcw, ScanLine } from "lucide-react";
+import { Camera, ImageIcon, Loader2, RotateCcw, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/scan")({
@@ -49,9 +49,11 @@ function ScanPage() {
   const [amount, setAmount] = useState("");
   const [catId, setCatId] = useState("");
   const [saving, setSaving] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -63,8 +65,72 @@ function ScanPage() {
     setMerchant("");
     setAmount("");
     setCatId("");
-    if (cameraRef.current) cameraRef.current.value = "";
     if (galleryRef.current) galleryRef.current.value = "";
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setCameraOpen(false);
+  };
+
+  // Stop camera on unmount
+  useEffect(() => () => stopCamera(), []);
+
+  const openCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Camera not available on this device. Use 'From gallery' instead.");
+      return;
+    }
+    setCameraStarting(true);
+    try {
+      // Browser will show the permission prompt every time unless user has previously granted persistent access.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setCameraOpen(true);
+      // Wait a tick for the video element to mount, then attach the stream
+      requestAnimationFrame(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Couldn't access camera.";
+      toast.error(`Camera permission denied or unavailable. ${msg}`);
+    } finally {
+      setCameraStarting(false);
+    }
+  };
+
+  const capturePhoto = async () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) {
+      toast.error("Camera not ready yet.");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const blob: Blob | null = await new Promise((res) =>
+      canvas.toBlob((b) => res(b), "image/jpeg", 0.9)
+    );
+    if (!blob) {
+      toast.error("Failed to capture photo.");
+      return;
+    }
+    stopCamera();
+    const file = new File([blob], `receipt-${Date.now()}.jpg`, { type: "image/jpeg" });
+    onFile(file);
   };
 
   const onFile = async (file: File) => {
@@ -150,18 +216,7 @@ function ScanPage() {
               automatically — you just pick the category.
             </p>
 
-            {/* Hidden inputs: one opens the camera, one opens the gallery/files */}
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onFile(f);
-              }}
-            />
+            {/* Hidden gallery picker */}
             <input
               ref={galleryRef}
               type="file"
@@ -173,17 +228,23 @@ function ScanPage() {
               }}
             />
 
-            {!previewUrl && (
+            {!previewUrl && !cameraOpen && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => cameraRef.current?.click()}
-                  disabled={scanning}
+                  onClick={openCamera}
+                  disabled={scanning || cameraStarting}
                   className="group flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-card p-6 h-36 transition-colors hover:border-primary hover:bg-accent disabled:opacity-50"
                 >
-                  <Camera className="h-8 w-8 text-primary" />
+                  {cameraStarting ? (
+                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-primary" />
+                  )}
                   <span className="font-medium">Use camera</span>
-                  <span className="text-xs text-muted-foreground">Scan a receipt now</span>
+                  <span className="text-xs text-muted-foreground">
+                    {cameraStarting ? "Requesting permission…" : "Scan a receipt now"}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -195,6 +256,28 @@ function ScanPage() {
                   <span className="font-medium">From gallery</span>
                   <span className="text-xs text-muted-foreground">Pick an existing photo</span>
                 </button>
+              </div>
+            )}
+
+            {cameraOpen && !previewUrl && (
+              <div className="space-y-3">
+                <div className="relative rounded-lg overflow-hidden border border-border bg-black">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full max-h-[60vh] object-contain bg-black"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={stopCamera}>
+                    <X className="mr-2 h-4 w-4" /> Cancel
+                  </Button>
+                  <Button onClick={capturePhoto}>
+                    <Camera className="mr-2 h-4 w-4" /> Capture
+                  </Button>
+                </div>
               </div>
             )}
 
