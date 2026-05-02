@@ -70,10 +70,10 @@ function TransactionsPage() {
     await refresh();
     toast.success("Transaction added");
 
-    // Show a rewarded ad every 3 transactions (skipped for Pro members)
+    // Show a rewarded ad every 5 transactions (persists across app closes via localStorage)
     if (!isPro) {
       const count = getTxnSinceLastAd(user.id) + 1;
-      if (count >= 3) {
+      if (count >= 5) {
         setTxnSinceLastAd(user.id, 0);
         toast.info("Quick ad break — thanks for supporting us!");
         await showAd();
