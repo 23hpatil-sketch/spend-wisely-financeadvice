@@ -5,6 +5,7 @@ import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { LogSpendDialog } from "@/components/LogSpendDialog";
+import { DeleteCategoryDialog } from "@/components/DeleteCategoryDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,14 +67,6 @@ function CategoriesPage() {
     await refresh();
   };
 
-  const removeCat = async (id: string) => {
-    if (!confirm("Delete this category?")) return;
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Category deleted");
-    await refresh();
-  };
-
   return (
     <AppShell>
       <div className="flex items-center justify-between mb-4">
@@ -110,9 +103,16 @@ function CategoriesPage() {
                       onBlur={() => saveName(c.id, c.name)}
                       onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
                     />
-                    <Button variant="ghost" size="icon" onClick={() => removeCat(c.id)} aria-label={`Delete ${c.name}`}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteCategoryDialog
+                      categoryId={c.id}
+                      categoryName={c.name}
+                      onDeleted={refresh}
+                      trigger={
+                        <Button variant="ghost" size="icon" aria-label={`Delete ${c.name}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                   </div>
 
                   <div>
