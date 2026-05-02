@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Loader2, RotateCcw, ScanLine } from "lucide-react";
+import { Camera, ImageIcon, Loader2, RotateCcw, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/scan")({
@@ -50,6 +50,8 @@ function ScanPage() {
   const [catId, setCatId] = useState("");
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -61,7 +63,8 @@ function ScanPage() {
     setMerchant("");
     setAmount("");
     setCatId("");
-    if (fileRef.current) fileRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
+    if (galleryRef.current) galleryRef.current.value = "";
   };
 
   const onFile = async (file: File) => {
@@ -147,8 +150,9 @@ function ScanPage() {
               automatically — you just pick the category.
             </p>
 
+            {/* Hidden inputs: one opens the camera, one opens the gallery/files */}
             <input
-              ref={fileRef}
+              ref={cameraRef}
               type="file"
               accept="image/*"
               capture="environment"
@@ -158,16 +162,40 @@ function ScanPage() {
                 if (f) onFile(f);
               }}
             />
+            <input
+              ref={galleryRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onFile(f);
+              }}
+            />
 
             {!previewUrl && (
-              <Button
-                size="lg"
-                className="w-full h-14"
-                onClick={() => fileRef.current?.click()}
-                disabled={scanning}
-              >
-                <Camera className="mr-2 h-5 w-5" /> Take / choose receipt photo
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => cameraRef.current?.click()}
+                  disabled={scanning}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-card p-6 h-36 transition-colors hover:border-primary hover:bg-accent disabled:opacity-50"
+                >
+                  <Camera className="h-8 w-8 text-primary" />
+                  <span className="font-medium">Use camera</span>
+                  <span className="text-xs text-muted-foreground">Scan a receipt now</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => galleryRef.current?.click()}
+                  disabled={scanning}
+                  className="group flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-card p-6 h-36 transition-colors hover:border-primary hover:bg-accent disabled:opacity-50"
+                >
+                  <ImageIcon className="h-8 w-8 text-primary" />
+                  <span className="font-medium">From gallery</span>
+                  <span className="text-xs text-muted-foreground">Pick an existing photo</span>
+                </button>
+              </div>
             )}
 
             {previewUrl && (
