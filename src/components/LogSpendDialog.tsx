@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useIsPro } from "@/lib/pro";
+import { useRewardedAd, getTxnSinceLastAd, setTxnSinceLastAd } from "@/lib/rewardedAds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +18,8 @@ type Props = {
 
 export function LogSpendDialog({ trigger, categoryId = null, categoryName, onSaved }: Props) {
   const { user } = useAuth();
+  const isPro = useIsPro();
+  const { showAd } = useRewardedAd();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [desc, setDesc] = useState("");
@@ -40,6 +44,18 @@ export function LogSpendDialog({ trigger, categoryId = null, categoryName, onSav
     setOpen(false);
     await onSaved?.();
     toast.success("Spend logged");
+
+    // Show a rewarded ad every 5 transactions (persists across app closes)
+    if (!isPro) {
+      const count = getTxnSinceLastAd(user.id) + 1;
+      if (count >= 5) {
+        setTxnSinceLastAd(user.id, 0);
+        toast.info("Quick ad break — thanks for supporting us!");
+        await showAd();
+      } else {
+        setTxnSinceLastAd(user.id, count);
+      }
+    }
   };
 
   return (
