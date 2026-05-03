@@ -180,9 +180,21 @@ function ScanPage() {
     }
     setSaving(true);
     const description = merchant.trim() || "Scanned receipt";
-    const occurredAt = extracted?.date
-      ? new Date(extracted.date).toISOString()
-      : new Date().toISOString();
+    let occurredAt = new Date().toISOString();
+    if (extracted?.date) {
+      const parsed = new Date(extracted.date);
+      const now = new Date();
+      // Only use the parsed date if it's valid and within a sensible window
+      // (not in the future, not more than ~2 years old). Otherwise fall back to now
+      // so the spend is counted toward the current year's total.
+      if (
+        !Number.isNaN(parsed.getTime()) &&
+        parsed.getTime() <= now.getTime() &&
+        parsed.getFullYear() === now.getFullYear()
+      ) {
+        occurredAt = parsed.toISOString();
+      }
+    }
     const { error } = await supabase.from("transactions").insert({
       user_id: user.id,
       amount: amt,
