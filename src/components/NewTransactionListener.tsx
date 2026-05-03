@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const QUICK_CATEGORIES = ["Food", "Transport", "Shopping"] as const;
 
 async function assignCategory(transactionId: string, userId: string, categoryName: string) {
-  // Find or create category by name for this user
   const { data: existing } = await supabase
     .from("categories")
     .select("id")
@@ -33,11 +33,8 @@ async function assignCategory(transactionId: string, userId: string, categoryNam
     .update({ category_id: categoryId, pending_category: false })
     .eq("id", transactionId);
 
-  if (updErr) {
-    toast.error("Failed to assign category");
-  } else {
-    toast.success(`Assigned to ${categoryName}`);
-  }
+  if (updErr) toast.error("Failed to assign category");
+  else toast.success(`Assigned to ${categoryName}`);
 }
 
 export function NewTransactionListener() {
@@ -67,28 +64,32 @@ export function NewTransactionListener() {
           const label = tx.merchant_name || tx.description || "New transaction";
           const amount = Number(tx.amount).toFixed(2);
 
-          toast(`${label} — £${amount}`, {
-            description: "Which category do you want to deduct this from?",
-            duration: 30000,
-            action: {
-              label: QUICK_CATEGORIES[0],
-              onClick: () => assignCategory(tx.id, userId, QUICK_CATEGORIES[0]),
-            },
-            cancel: {
-              label: QUICK_CATEGORIES[1],
-              onClick: () => assignCategory(tx.id, userId, QUICK_CATEGORIES[1]),
-            },
-          });
-
-          // Second toast for Shopping since sonner only supports 1 action + 1 cancel
-          toast(`${label}`, {
-            description: `Or assign to ${QUICK_CATEGORIES[2]}?`,
-            duration: 30000,
-            action: {
-              label: QUICK_CATEGORIES[2],
-              onClick: () => assignCategory(tx.id, userId, QUICK_CATEGORIES[2]),
-            },
-          });
+          toast.custom(
+            (t) => (
+              <div className="rounded-lg border border-border bg-background p-4 shadow-lg w-[340px]">
+                <div className="font-semibold text-sm">{label} — £{amount}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Which category do you want to deduct this from?
+                </div>
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  {QUICK_CATEGORIES.map((cat) => (
+                    <Button
+                      key={cat}
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        toast.dismiss(t);
+                        await assignCategory(tx.id, userId, cat);
+                      }}
+                    >
+                      {cat}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ),
+            { duration: 30000 }
+          );
         }
       )
       .subscribe();
