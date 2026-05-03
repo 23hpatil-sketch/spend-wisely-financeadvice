@@ -5,6 +5,7 @@ import { useProfileData } from "@/lib/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { DeleteCategoryDialog } from "@/components/DeleteCategoryDialog";
+import { ConnectBankButton } from "@/components/ConnectBankButton";
 import { useTheme } from "@/lib/theme";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,18 @@ function SettingsPage() {
   return (
     <AppShell>
       <div className="space-y-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Bank connection</CardTitle>
+            <CardDescription>
+              Securely link a bank account via Plaid to import transactions automatically.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ConnectBankButton onConnected={refresh} />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Appearance</CardTitle>
