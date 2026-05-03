@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import { ProProvider } from "@/lib/pro";
 import { DailyReminder } from "@/components/DailyReminder";
+import { NewTransactionListener } from "@/components/NewTransactionListener";
 
 import appCss from "../styles.css?url";
 
@@ -57,6 +58,7 @@ function RootComponent() {
           <Outlet />
           <Toaster />
           <DailyReminder />
+          <NewTransactionListener />
         </ProProvider>
       </AuthProvider>
     </ThemeProvider>
