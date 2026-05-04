@@ -41,5 +41,15 @@ export function useProfileData() {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`profile-data-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${user.id}` }, () => refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories", filter: `user_id=eq.${user.id}` }, () => refresh())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, refresh]);
+
   return { profile, categories, transactions, loading, refresh };
 }
