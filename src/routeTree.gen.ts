@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicPlaidWebhookRouteImport } from './routes/api/public/plaid-webhook'
 
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
@@ -76,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPlaidWebhookRoute = ApiPublicPlaidWebhookRouteImport.update({
+  id: '/api/public/plaid-webhook',
+  path: '/api/public/plaid-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
+  '/api/public/plaid-webhook': typeof ApiPublicPlaidWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
+  '/api/public/plaid-webhook': typeof ApiPublicPlaidWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/transactions': typeof TransactionsRoute
+  '/api/public/plaid-webhook': typeof ApiPublicPlaidWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
+    | '/api/public/plaid-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
+    | '/api/public/plaid-webhook'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/transactions'
+    | '/api/public/plaid-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TransactionsRoute: typeof TransactionsRoute
+  ApiPublicPlaidWebhookRoute: typeof ApiPublicPlaidWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/plaid-webhook': {
+      id: '/api/public/plaid-webhook'
+      path: '/api/public/plaid-webhook'
+      fullPath: '/api/public/plaid-webhook'
+      preLoaderRoute: typeof ApiPublicPlaidWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TransactionsRoute: TransactionsRoute,
+  ApiPublicPlaidWebhookRoute: ApiPublicPlaidWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
