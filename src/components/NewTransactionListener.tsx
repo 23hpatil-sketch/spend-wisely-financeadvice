@@ -1,45 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { usePushNotifications } from "@/lib/usePushNotifications";
 
-const QUICK_CATEGORIES = ["Food", "Transport", "Shopping"] as const;
-
-async function assignCategory(transactionId: string, userId: string, categoryName: string) {
-  const { data: existing } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("user_id", userId)
-    .ilike("name", categoryName)
-    .maybeSingle();
-
-  let categoryId = existing?.id;
-  if (!categoryId) {
-    const { data: created, error } = await supabase
-      .from("categories")
-      .insert({ user_id: userId, name: categoryName, monthly_budget: 0 })
-      .select("id")
-      .single();
-    if (error || !created) {
-      toast.error("Could not create category");
-      return;
-    }
-    categoryId = created.id;
-  }
-
-  const { error: updErr } = await supabase
+async function assignCategory(transactionId: string, categoryId: string, categoryName: string) {
+  const { error } = await supabase
     .from("transactions")
     .update({ category_id: categoryId, pending_category: false })
     .eq("id", transactionId);
-
-  if (updErr) toast.error("Failed to assign category");
+  if (error) toast.error("Failed to assign category");
   else toast.success(`Assigned to ${categoryName}`);
 }
 
 export function NewTransactionListener() {
   const { user } = useAuth();
   const userId = user?.id;
+  const [cats, setCats] = useState<{ id: string; name: string }[]>([]);
+  usePushNotifications();
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("categories")
+      .select("id, name")
+      .eq("user_id", userId)
+      .order("created_at")
+      .then(({ data }) => setCats((data ?? []) as any));
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -61,30 +50,34 @@ export function NewTransactionListener() {
             description: string | null;
             merchant_name: string | null;
           };
-          const label = tx.merchant_name || tx.description || "New transaction";
+          const label = tx.merchant_name || tx.description || "Unknown";
           const amount = Number(tx.amount).toFixed(2);
 
           toast.custom(
             (t) => (
-              <div className="rounded-lg border border-border bg-background p-4 shadow-lg w-[340px]">
-                <div className="font-semibold text-sm">{label} — £{amount}</div>
+              <div className="rounded-lg border border-border bg-background p-4 shadow-lg w-[360px]">
+                <div className="font-semibold text-sm">New Transaction: £{amount} at {label}</div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  Which category do you want to deduct this from?
+                  Select category to deduct from:
                 </div>
                 <div className="mt-3 flex gap-2 flex-wrap">
-                  {QUICK_CATEGORIES.map((cat) => (
-                    <Button
-                      key={cat}
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        toast.dismiss(t);
-                        await assignCategory(tx.id, userId, cat);
-                      }}
-                    >
-                      {cat}
-                    </Button>
-                  ))}
+                  {cats.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">No categories. Add some in Settings.</span>
+                  ) : (
+                    cats.map((c) => (
+                      <Button
+                        key={c.id}
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          toast.dismiss(t);
+                          await assignCategory(tx.id, c.id, c.name);
+                        }}
+                      >
+                        {c.name}
+                      </Button>
+                    ))
+                  )}
                 </div>
               </div>
             ),
@@ -97,7 +90,7 @@ export function NewTransactionListener() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, cats]);
 
   return null;
 }
