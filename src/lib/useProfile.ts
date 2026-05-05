@@ -44,7 +44,7 @@ export function useProfileData() {
   useEffect(() => {
     if (!user) return;
     const ch = supabase
-      .channel(`profile-data-${user.id}`)
+      .channel(`profile-data-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${user.id}` }, () => refresh())
       .on("postgres_changes", { event: "*", schema: "public", table: "categories", filter: `user_id=eq.${user.id}` }, () => refresh())
       .subscribe();
