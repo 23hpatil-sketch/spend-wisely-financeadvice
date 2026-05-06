@@ -23,7 +23,7 @@ function getPlaidClient() {
     throw new Error("Plaid credentials are not configured.");
   }
   const config = new Configuration({
-    basePath: PlaidEnvironments.sandbox,
+    basePath: PlaidEnvironments.production,
     baseOptions: {
       headers: {
         "PLAID-CLIENT-ID": clientId,
